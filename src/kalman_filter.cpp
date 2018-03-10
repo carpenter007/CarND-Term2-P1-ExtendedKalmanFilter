@@ -51,27 +51,26 @@ void KalmanFilter::Update(const VectorXd &z) {
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
   // Recalculate x object state to rho, phi, rho_dot coordinates
     double rho = sqrt(x_(0)*x_(0) + x_(1)*x_(1));
-    if(rho <= 0.001)
+    if(rho <= 0.0001)
     {
       return;
     }
     double phi = atan2(x_(1) , x_(0));
     double rho_dot = (x_(0)*x_(2) + x_(1)*x_(3)) / rho;
 
-
-    while(phi >= M_PI)
-    {
-      phi -= (2*M_PI);
-    }
-    while(phi <= (-1*M_PI))
-    {
-      phi += (2*M_PI);
-    }
-
     VectorXd h = VectorXd(3); // h(x_)
     h << rho, phi, rho_dot;
 
     VectorXd y = z - h;
+
+    while(y[1] > M_PI)
+    {
+      y[1]  -= (2*M_PI);
+    }
+    while(y[1]  < (-M_PI))
+    {
+      y[1]  += (2*M_PI);
+    }
     // Calculations are essentially the same to the Update function
     MatrixXd Ht = H_.transpose();
     MatrixXd S = H_ * P_ * Ht + R_;
